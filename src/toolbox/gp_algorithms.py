@@ -5,41 +5,43 @@ from random import Random
 import numpy as np
 from tqdm import tqdm
 from src.toolbox.gp_bloat_control import ind_limit
-from src.toolbox.gp_objects import ADFIndividual, Compiler, SimpleCompiler, Individual, PrimitiveSet, Tree
-from src.toolbox.gp_expr_op import xover, point_mut
+from src.toolbox.gp_objects import (
+    ADFIndividual,
+    Compiler,
+    Primitive,
+    SimpleCompiler,
+    Individual,
+    PrimitiveSet,
+    Terminal,
+    Tree,
+)
+from src.toolbox.gp_expr_op import xover, point_mut, hoist_mut, subtree_mut
 from src.gp_random import PyRndGenerator
 from src.toolbox.gp_statistics import Statistics
 
 
 xover = ind_limit(xover, measure=operator.attrgetter("height"), max_limit=10)
 point_mut = ind_limit(point_mut, measure=operator.attrgetter("height"), max_limit=10)
+# point_mut = ind_limit(hoist_mut, measure=operator.attrgetter("height"), max_limit=10)
 
 
 def mu_comma_lambda(
     population: list[Individual],
     ngeneration: int,
     mu: int,
-    lambd: int,
-    mprob: float,
-    cprob: float,
-    pset: PrimitiveSet | list[PrimitiveSet],
+    gen_of,
     fitness_func,
     stat: Statistics,
 ) -> tuple[list[Individual], list[tuple[int, dict[str, float]]], Individual]:
-    assert (mprob + cprob) == 1, "ERROR: the sum of mutation probability and crossover probability must be equal to 1"
-    assert lambd > mu, "ERROR: lambd must be greater than mu"
+    # assert (mprob + cprob) == 1, "ERROR: the sum of mutation probability and crossover probability must be equal to 1"
+    # assert lambd > mu, "ERROR: lambd must be greater than mu"
 
     stats_history = []
     best = population[0]
 
-    if isinstance(population[0], Tree):
-        gen_of = gen_offsprings
-    else:
-        gen_of = adf_gen_offspring
-
     for ngen in tqdm(range(1, ngeneration + 1), desc="algo"):
 
-        offsprings = gen_of(population, lambd, mprob, cprob, pset)  # type: ignore
+        offsprings = gen_of(population)  # type: ignore
 
         new_pop = []
         for of in offsprings:
@@ -67,7 +69,47 @@ def mu_comma_lambda(
     return population, stats_history, best
 
 
-def gen_offsprings(population: list[Tree], lambd: int, mprob: float, cprob: float, pset: PrimitiveSet) -> list[Tree]:
+def mu_plus_lambda(
+    population: list[Individual],
+    ngeneration: int,
+    mu: int,
+    gen_off_func,
+    fitness_func,
+    stat: Statistics,
+) -> tuple[list[Individual], list[tuple[int, dict[str, float]]], Individual]:
+
+    stats_history = []
+    best = population[0]
+
+    for ngen in tqdm(range(1, ngeneration + 1), desc="algo"):
+
+        offsprings = gen_off_func(population)  # type: ignore
+
+        for of in offsprings:
+            fit = fitness_func(of)
+            if fit != -1:
+                of.fitness = fit
+            else:
+                of.fitness = float("inf")
+
+        population.extend(offsprings)
+        population.sort(key=lambda ind: ind.fitness)
+
+        population = population[:mu]
+
+        if population[0].fitness < best.fitness:
+            best = copy.deepcopy(population[0])
+            print(f"\n {best.fitness}")
+
+        stats = stat.compute_stats(population)
+        stats_history.append((ngen, stats))
+
+    return population, stats_history, best
+
+
+def gen_offsprings(
+    population: list[Tree], lambd: int, mprob: float, cprob: float, pset: PrimitiveSet, selection_func
+) -> list[Tree]:
     offsprings = []
     noffsprings = 0
     gen: Random = PyRndGenerator().gen
@@ -75,15 +117,101 @@ def gen_offsprings(population: list[Tree], lambd: int, mprob: float, cprob: floa
     while noffsprings < lambd:
         op_choice = gen.random()
         if op_choice < cprob:
-            ind1, ind2 = gen.sample(population, 2)
+            # ind1, ind2 = gen.sample(population, 2)
+            ind1, ind2 = selection_func(population, nind=2)
             of1, of2 = xover(ind1, ind2)
-            offsprings.append(of1)
-            offsprings.append(of2)
-            noffsprings += 2
+            if ind_has_all_var(of1, pset):
+                offsprings.append(of1)
+                noffsprings += 1
+            if ind_has_all_var(of2, pset):
+                offsprings.append(of2)
+                noffsprings += 1
+            # offsprings.append(of2)
+            # noffsprings += 2
         else:
-            ind1 = gen.choice(population)
-            offsprings.append(point_mut(ind1, pset)[0])
+            # ind1 = gen.choice(population)
+            ind1 = selection_func(population, nind=1)[0]
+            of = point_mut(ind1, pset)[0]
+            if ind_has_all_var(of, pset):
+                offsprings.append(of)
+                noffsprings += 1
+    return offsprings
+
+
+def tournament_selection(population, tournament_size: int, nind: int):
+    inds = []
+    gen: Random = PyRndGenerator().gen
+    for _ in range(nind):
+        selected = gen.choices(population, k=tournament_size)
+        inds.append(min(selected, key=lambda ind: ind.fitness))
+    return inds
+
+
+def uniform_selection(population, nind: int):
+    gen: Random = PyRndGenerator().gen
+    return gen.choices(population, k=nind)
+
+
+def ind_has_all_var(ind, pset):
+    vars = set(pset.arguments)
+    var_found = set()
+    for node in ind:
+        if isinstance(node, Terminal) and node.is_symbolic:
+            var_found.add(node.name)
+    return vars == var_found
+
+
+def custom_adf_gen_offspring(
+    population: list[ADFIndividual], mprob: float, cprob: float, lambd: int, pset: list[PrimitiveSet]
+):
+
+    noffsprings = 0
+    offsprings = []
+    gen: Random = PyRndGenerator().gen
+
+    while noffsprings < lambd:
+
+        if gen.random() < cprob:
+
+            par1, par2 = gen.sample(population, 2)
+
+            of1 = copy.deepcopy(par1)
+            of2 = copy.deepcopy(par2)
+
+            prim_idx = gen.randrange(1, len(par1[0]))
+            prim_name: str = par1[0][prim_idx].name
+
+            if prim_name.startswith("ADF"):
+                adf_idx = int(prim_name.split("_")[1])
+                of1[adf_idx] = par2[adf_idx]
+                of2[adf_idx] = par1[adf_idx]
+                offsprings.append(of1)
+                offsprings.append(of2)
+                noffsprings += 2
+
+        else:
+            ind = gen.choice(population)
+            of = copy.deepcopy(ind)
+            prim_idx = gen.randrange(0, len(ind[0]))
+            prim: Primitive = ind[0][prim_idx]
+            prim_name: str = prim.name
+            if prim_name.startswith("ADF"):
+                adf_idx = int(prim_name.split("_")[1])
+                of[adf_idx] = point_mut(ind[adf_idx], pset[adf_idx])[0]
+                offsprings.append(of)
+            else:
+                narity = prim.arity
+                if narity != 0:
+                    new_prim = gen.choice(pset[0].prim_dict[narity])
+                    of[0][prim_idx] = new_prim
+                else:
+                    new_term = gen.choice(pset[0].terminals)
+                    of[0][prim_idx] = new_term
+
+                offsprings.append(of)
+
             noffsprings += 1
+
     return offsprings
 
 

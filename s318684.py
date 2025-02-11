@@ -4,28 +4,61 @@
 
 import numpy as np
 
-# All numpy's mathematical functions can be used in formulas
-# see: https://numpy.org/doc/stable/reference/routines.math.html
-
-
-# Notez bien: No need to include f0 -- it's just an example!
-def f0(x: np.ndarray) -> np.ndarray:
-    return x[0] + np.sin(x[1]) / 5
-
 
 def f1(x: np.ndarray) -> np.ndarray:
     return np.sin(x[0])
 
 
-def f2(x: np.ndarray) -> np.ndarray: ...
+def f2(x: np.ndarray) -> np.ndarray:
+    return np.exp(np.hypot(np.add(8, x[0]), np.logaddexp2(8, 8)))
 
 
 def f3(x: np.ndarray) -> np.ndarray:
-    return np.multiply(np.add(x[1], np.subtract(-7, np.subtract(np.multiply(x[1], x[1]), np.subtract(x[1], -5)))), x[1])
+    # this is better, change it
+    return np.add(
+        np.add(
+            np.multiply(np.multiply(np.sinh(np.sin(np.sinh(np.sinh(np.sinh(np.sin(x[1])))))), x[1]), x[1]),
+            np.sinh(np.subtract(np.tanh(np.tanh(np.cos(5))), x[1])),
+        ),
+        np.subtract(
+            np.subtract(
+                np.subtract(
+                    np.subtract(
+                        np.subtract(
+                            np.subtract(np.multiply(np.cosh(np.absolute(x[0])), np.cosh(np.cos(x[0]))), x[2]), x[2]
+                        ),
+                        np.absolute(np.subtract(np.sinh(np.sinh(np.sin(x[1]))), x[1])),
+                    ),
+                    np.add(x[1], np.add(x[1], x[2])),
+                ),
+                np.add(np.add(x[1], np.cos(x[0])), np.add(np.add(x[1], np.cos(10)), x[2])),
+            ),
+            np.add(np.add(x[1], np.cos(10)), np.cos(x[0])),
+        ),
+    )
 
 
 def f4(x: np.ndarray) -> np.ndarray:
-    return np.add(np.multiply(6, np.cos(x[1])), np.exp(np.cos(np.subtract(x[1], x[1]))))
+    return np.add(
+        np.subtract(
+            np.add(np.cos(np.add(np.cos(x[1]), np.cos(x[1]))), np.cos(x[1])),
+            np.multiply(
+                np.multiply(np.absolute(3), np.sinh(np.cos(x[1]))),
+                np.tanh(np.tanh(np.subtract(np.multiply(x[0], np.sinh(np.cos(x[1]))), 7))),
+            ),
+        ),
+        np.exp(
+            np.add(
+                np.cos(
+                    np.add(
+                        np.subtract(np.multiply(x[0], 3), np.multiply(x[0], 3)),
+                        np.multiply(np.cos(3), np.subtract(np.cos(x[1]), np.tanh(np.tanh(np.tanh(3))))),
+                    )
+                ),
+                np.cos(x[1]),
+            )
+        ),
+    )
 
 
 def f5(x: np.ndarray) -> np.ndarray:
@@ -37,7 +70,31 @@ def f6(x: np.ndarray) -> np.ndarray:
 
 
 def f7(x: np.ndarray) -> np.ndarray:
-    return np.exp(np.multiply(x[1], x[0]))
+    return np.exp(
+        np.add(
+            np.arctan(
+                np.multiply(
+                    np.add(
+                        np.cosh(np.tanh(np.sin(np.add(np.cosh(4), np.multiply(x[1], 6))))),
+                        np.sin(np.multiply(x[0], x[0])),
+                    ),
+                    np.multiply(
+                        np.add(
+                            np.cosh(np.sin(np.add(np.cosh(6), np.multiply(x[1], x[1])))),
+                            np.sin(np.add(np.cosh(6), np.multiply(x[0], x[0]))),
+                        ),
+                        np.exp(
+                            np.multiply(
+                                np.multiply(np.arctan(x[1]), np.arctan(x[0])),
+                                np.multiply(np.multiply(np.arctan(x[1]), np.arctan(x[0])), np.multiply(x[1], x[1])),
+                            )
+                        ),
+                    ),
+                )
+            ),
+            np.multiply(x[0], x[1]),
+        )
+    )
 
 
 def f8(x: np.ndarray) -> np.ndarray:

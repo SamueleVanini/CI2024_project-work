@@ -35,6 +35,8 @@ class RunLogger:
         hyp["primitives"] = [prim.__name__ for prim in hyp["primitives"]]
         hyp["terminals"] = [term[1] for term in hyp["terminals"]]
         self.results["hyp"] = hyp
+        self.results["hyp"]["gen_off_func"] = self.results["hyp"]["gen_off_func"].__name__
+        self.results["hyp"]["selection_func"] = self.results["hyp"]["selection_func"].__name__
 
     def commit(self) -> None:
         full_path = self.base_path / (self.base_file_name + f"_{self.current_file_idx}.json")

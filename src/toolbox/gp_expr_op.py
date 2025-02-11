@@ -53,7 +53,9 @@ def _gen_expr(
 #########
 
 
-def xover(parrent1: Tree, parrent2: Tree) -> tuple[Tree, Tree]:
+def xover(
+    parrent1: Tree, parrent2: Tree, prob_swap_prim: float = 0.5, prob_swap_term: float = 0.3
+) -> tuple[Tree, Tree]:
 
     gen: Random = PyRndGenerator().gen
 
@@ -64,8 +66,29 @@ def xover(parrent1: Tree, parrent2: Tree) -> tuple[Tree, Tree]:
     offspring1 = copy.deepcopy(parrent1)
     offspring2 = copy.deepcopy(parrent2)
 
-    idx1 = gen.randrange(1, len(offspring1))
-    idx2 = gen.randrange(1, len(offspring2))
+    idx1 = None
+    idx2 = None
+    sample = gen.random()
+    if sample < prob_swap_prim:
+        idx1 = gen.randrange(0, len(offspring1) - 1)
+        while isinstance(offspring1[idx1], Primitive):
+            idx1 = gen.randrange(0, len(offspring1) - 1)
+
+        idx2 = gen.randrange(0, len(offspring2) - 1)
+        while isinstance(offspring2[idx2], Primitive):
+            idx2 = gen.randrange(0, len(offspring2) - 1)
+
+    elif sample < prob_swap_prim + prob_swap_term:
+        idx1 = gen.randrange(1, len(offspring1))
+        while isinstance(offspring1[idx1], Terminal):
+            idx1 = gen.randrange(1, len(offspring1))
+
+        idx2 = gen.randrange(1, len(offspring2))
+        while isinstance(offspring2[idx2], Terminal):
+            idx2 = gen.randrange(1, len(offspring2))
+    else:
+        idx1 = gen.randrange(1, len(offspring1))
+        idx2 = gen.randrange(1, len(offspring2))
 
     slice1 = offspring1.getSubTree(idx1)
     slice2 = offspring2.getSubTree(idx2)
@@ -81,11 +104,12 @@ def xover(parrent1: Tree, parrent2: Tree) -> tuple[Tree, Tree]:
 
 
 def subtree_mut(
-    individual: Tree, gen_func: Callable[[PrimitiveSet, int, int], Iterable[Terminal | Primitive]], pset: PrimitiveSet
+    individual: Tree,
+    gen_func: Callable[[PrimitiveSet, int, int], Iterable[Terminal | Primitive]],
+    pset: PrimitiveSet,
+    min_height: int,
+    max_height: int,
 ) -> tuple[Tree]:
-    # TODO take min_height and max_height out of the function
-    min_height = 1
-    max_height = 3
     gen: Random = PyRndGenerator().gen
     offspring = copy.deepcopy(individual)
     idx = gen.randrange(len(offspring))
@@ -110,12 +134,9 @@ def point_mut(individual: Tree, pset: PrimitiveSet) -> tuple[Tree]:
     return (offspring,)
 
 
-def hoist_mut(individual: Tree) -> tuple[Tree]:
+def hoist_mut(individual: Tree, pset: PrimitiveSet | None = None) -> tuple[Tree]:
     gen: Random = PyRndGenerator().gen
     idx = gen.randrange(len(individual))
     indslice = individual.getSubTree(idx)
     offspring = Tree(copy.deepcopy(individual[indslice]))
     return (offspring,)
-
-
-# TODO: investigate on Permutation Mutation

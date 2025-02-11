@@ -1,4 +1,5 @@
 from typing import Any, Callable, Protocol
+from src.toolbox.gp_algorithms import ind_has_all_var
 from src.toolbox.gp_objects import ADFIndividual, Individual, PrimitiveSet, Tree
 
 
@@ -29,7 +30,12 @@ class SimpleIndividualBuilder:
         self.gen_kwargs = gen_kwargs
 
     def gen_ind(self) -> Individual:
-        return Tree(self.gen_func(pset=self.pset, **self.gen_kwargs))
+        valid = False
+        while not valid:
+            ind = Tree(self.gen_func(pset=self.pset, **self.gen_kwargs))
+            if ind_has_all_var(ind, self.pset):
+                valid = True
+        return ind
 
 
 class ADFIndividualBuilder:

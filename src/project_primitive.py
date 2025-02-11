@@ -3,9 +3,9 @@ from src.toolbox.gp_objects import PrimitiveSet
 
 
 # TODO: we are not including np.sqrt since we are not impose checking on the arguments of a function
-def complete_pset(nvar: int) -> PrimitiveSet:
+def complete_pset(nvar: int, name: str = "COMPLETE") -> PrimitiveSet:
 
-    pset = PrimitiveSet("COMPLETE", nvar)
+    pset = PrimitiveSet(name, nvar)
 
     # Trigonometric functions
     pset.addPrimitive(np.sin)
@@ -63,9 +63,9 @@ def complete_pset(nvar: int) -> PrimitiveSet:
     return pset
 
 
-def simple_pset(nvar: int) -> PrimitiveSet:
+def simple_pset(nvar: int, name: str = "SIMPLE") -> PrimitiveSet:
 
-    pset = PrimitiveSet("SIMPLE", nvar)
+    pset = PrimitiveSet(name, nvar)
 
     pset.addPrimitive(np.sin)
     pset.addPrimitive(np.cos)
@@ -93,9 +93,9 @@ def simple_pset(nvar: int) -> PrimitiveSet:
     return pset
 
 
-def test_pset(nvar: int) -> PrimitiveSet:
+def test_pset(nvar: int, name: str = "TEST") -> PrimitiveSet:
 
-    pset = PrimitiveSet("TEST", nvar)
+    pset = PrimitiveSet(name, nvar)
 
     pset.addPrimitive(np.add)
     pset.addPrimitive(np.multiply)
