@@ -14,7 +14,6 @@ def f2(x: np.ndarray) -> np.ndarray:
 
 
 def f3(x: np.ndarray) -> np.ndarray:
-    # this is better, change it
     return np.add(
         np.add(
             np.multiply(np.multiply(np.sinh(np.sin(np.sinh(np.sinh(np.sinh(np.sin(x[1])))))), x[1]), x[1]),
@@ -98,16 +97,28 @@ def f7(x: np.ndarray) -> np.ndarray:
 
 
 def f8(x: np.ndarray) -> np.ndarray:
-    return np.multiply(
+    return np.subtract(
         np.multiply(
-            10,
             np.add(
-                np.multiply(np.multiply(9, x[5]), x[5]),
                 np.add(
-                    np.multiply(np.exp(x[5]), np.cos(x[5])),
-                    np.add(x[5], np.add(np.multiply(x[5], np.cos(9)), np.add(9, np.multiply(x[5], np.cos(9))))),
+                    np.add(
+                        np.add(
+                            2,
+                            np.add(2, np.add(np.multiply(np.multiply(x[5], x[5]), 10), np.power(np.add(x[5], -9), 2))),
+                        ),
+                        10,
+                    ),
+                    np.multiply(x[5], x[5]),
                 ),
+                np.power(np.add(np.power(x[5], 2), np.multiply(x[5], x[5])), 2),
+            ),
+            x[5],
+        ),
+        np.add(
+            np.multiply(10, 2),
+            np.add(
+                np.add(2, np.add(10, np.add(np.multiply(x[5], 2), x[5]))),
+                np.add(np.multiply(np.add(7, 8), 10), np.subtract(2, 7)),
             ),
         ),
-        x[5],
     )

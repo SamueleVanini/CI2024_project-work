@@ -33,9 +33,6 @@ def mu_comma_lambda(
     fitness_func,
     stat: Statistics,
 ) -> tuple[list[Individual], list[tuple[int, dict[str, float]]], Individual]:
-    # assert (mprob + cprob) == 1, "ERROR: the sum of mutation probability and crossover probability must be equal to 1"
-    # assert lambd > mu, "ERROR: lambd must be greater than mu"
-
     stats_history = []
     best = population[0]
 
@@ -45,19 +42,16 @@ def mu_comma_lambda(
 
         new_pop = []
         for of in offsprings:
-            # of.fitness = fitness_func(of)
             fit = fitness_func(of)
             if fit != -1:
                 of.fitness = fit
                 new_pop.append(of)
-        # offsprings.sort(key=lambda of: of.fitness)
         new_pop.sort(key=lambda of: of.fitness)
 
         if len(new_pop) < mu:
             for idx, _ in enumerate(range(mu - len(new_pop))):
                 new_pop.append(population[idx])
 
-        # population[:] = offsprings[:mu]
         population[:] = new_pop[:mu]
 
         if population[0].fitness < best.fitness:
@@ -113,11 +107,9 @@ def gen_offsprings(
     offsprings = []
     noffsprings = 0
     gen: Random = PyRndGenerator().gen
-    # TODO: for now implement uniform selection. Change it later to introduce new selection types
     while noffsprings < lambd:
         op_choice = gen.random()
         if op_choice < cprob:
-            # ind1, ind2 = gen.sample(population, 2)
             ind1, ind2 = selection_func(population, nind=2)
             of1, of2 = xover(ind1, ind2)
             if ind_has_all_var(of1, pset):
@@ -126,10 +118,7 @@ def gen_offsprings(
             if ind_has_all_var(of2, pset):
                 offsprings.append(of2)
                 noffsprings += 1
-            # offsprings.append(of2)
-            # noffsprings += 2
         else:
-            # ind1 = gen.choice(population)
             ind1 = selection_func(population, nind=1)[0]
             of = point_mut(ind1, pset)[0]
             if ind_has_all_var(of, pset):
@@ -221,7 +210,6 @@ def adf_gen_offspring(
     offsprings = []
     noffsprings = 0
     gen: Random = PyRndGenerator().gen
-    # TODO: for now implement uniform selection. Change it later to introduce new selection types
     while noffsprings < lambd:
 
         par1, par2 = gen.sample(population, 2)
@@ -259,8 +247,5 @@ def mse(ind: Tree, compiler: Compiler, x, y):
         try:
             y_pred.append(func(*xvar))
         except:
-            # print(
-            #     f"ERROR: the function {code} can't operate on the values {xvar} skipping rest of fitness computation and assign it value -1"
-            # )
             return -1
     return 100 * np.square(y - y_pred).sum() / len(y)

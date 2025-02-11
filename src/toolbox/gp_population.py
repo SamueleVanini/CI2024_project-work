@@ -8,7 +8,6 @@ class IndividualBuilder(Protocol):
     def gen_ind(self) -> Individual: ...
 
 
-# TODO: find correct type hint for partial function
 def get_init_population(builder: IndividualBuilder, fit_func, nind: int = 30) -> list[Individual]:
     pop = []
     while nind > 0:
